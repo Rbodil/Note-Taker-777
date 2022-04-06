@@ -1,32 +1,49 @@
-const path = require('path');
+const fs = require('fs');
 const router = require('express').Router();
-const { data } = require('../../db/db.json')
-const {
-    getAndRenderNotes,
-    saveNote,
-    deleteNote,
-    handleNoteSave,
-    handleNoteDelete
-} = require('../../public/assets/js/index')
+const { uuid } = require('uuidv4');
 
-router.get('/api/notes', (req,res) => {
+router.get('/notes', (req,res) => {
+    
+    const data = JSON.parse(fs.readFileSync('./db/db.json', "utf8"));
+
     let results = data;
 
     res.json(results);
 });
 
-router.post('/api/notes', (req,res) => {
-    req.body.id = data.length.toString();
+router.post('/notes', (req,res) => {
+    if(!req.body) return res.status(400);
 
-    if(req.body===""){
-        res.status(400).send("Note not found");
-    } else {
-        
-    }
+    const data = JSON.parse(fs.readFileSync('./db/db.json', "utf8"));
+
+
+    const newNote = {
+        title: req.body.title,
+        text: req.body.text,
+        id: uuid()
+    };
+    
+
+    data.push(newNote);
+
+    fs.writeFileSync("./db/db.json", JSON.stringify(data, null, 2));
+    res.json(newNote);
+
 })
 
-router.delete('/api/notes', (req, res) => {
-    res.send(`Delete note ${req.params.id}`)
+router.delete('/notes/:id', (req, res) => {
+
+    const data = JSON.parse(fs.readFileSync('./db/db.json', "utf8"));
+
+    const id = req.params.id;
+
+    const newData = data.filter(note => {
+            return note.id != id
+        })
+
+    fs.writeFileSync("./db/db.json", JSON.stringify(newData, null, 2));
+    res.json(newData);
+
 })
 
 
